@@ -27,11 +27,30 @@ class TableViewController: UITableViewController {
         if allWords.isEmpty{
             allWords = ["henry"]
         }
-        startGame()
+        if let currentWord = UserDefaults.standard.object(forKey: "CurrentWord") as? String{
+            title = currentWord
+        } else {
+           startGame()
+        }
+        if let usedWord = UserDefaults.standard.object(forKey: "usedWords") as? [String]{
+            self.usedWords = usedWord
+            tableView.reloadData()
+        }
+//        startGame()
     }
     
-    func startGame(){
-        title = allWords.randomElement()
+    func winGame(){
+        if usedWords.count == 5 {
+            let alert = UIAlertController(title: "WOWWWWW!", message: "You win the game", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "New Game", style: .default, handler: startGame))
+            present(alert, animated:  true)
+        }
+    }
+    
+    func startGame(action: UIAlertAction! = nil){
+        let currentWord = allWords.randomElement()
+        title = currentWord
+        UserDefaults.standard.set(currentWord, forKey: "CurrentWord")
         usedWords.removeAll(keepingCapacity: true)
         tableView.reloadData()
     }
@@ -65,9 +84,11 @@ class TableViewController: UITableViewController {
         //TODO: check error message
         if showErrorMessage(lowerAnswer) {
             usedWords.insert(lowerAnswer, at: 0)
+            UserDefaults.standard.set(usedWords, forKey: "usedWords")
             let indexPath = IndexPath(row: 0, section: 0)
             tableView.insertRows(at: [indexPath], with: .automatic)
         }
+        winGame()
     }
     
     func isPossible(word: String) -> Bool{
